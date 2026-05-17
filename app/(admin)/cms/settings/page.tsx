@@ -11,6 +11,7 @@ export default async function SettingsPage() {
         heroTitle: settings.heroTitle || "",
         heroDescription: settings.heroDescription || "",
         aboutText: settings.aboutText || "",
+        avatarUrl: settings.avatarUrl || "",
         githubUrl: settings.githubUrl || "",
         linkedinUrl: settings.linkedinUrl || "",
         twitterUrl: settings.twitterUrl || "",
@@ -24,7 +25,8 @@ export default async function SettingsPage() {
           Definições do Site
         </h1>
         <p className="text-muted-foreground">
-          Gere o conteúdo estático e as informações principais do teu portfólio.
+          Gere o conteúdo estático, foto de perfil e as informações principais
+          do teu portfólio.
         </p>
       </div>
 

@@ -146,6 +146,7 @@ model SiteSettings {
   heroTitle       String? @db.Text
   heroDescription String? @db.Text
   aboutText       String? @db.Text
+  avatarUrl       String?
 
   githubUrl    String?
   linkedinUrl  String?
