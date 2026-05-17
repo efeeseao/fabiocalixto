@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String         @id
+  name          String
+  email         String
+  emailVerified Boolean        @default(false)
+  image         String?
+  role          Role           @default(USER)
+  status        ApprovalStatus @default(PENDING)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sessions  Session[]
+  accounts  Account[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Post {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  content    String   @db.Text
+  excerpt    String?  @db.Text
+  coverImage String?
+  published  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tags Tag[] @relation("PostTags")
+
+  @@map("post")
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  title         String
+  description   String   @db.Text
+  repositoryUrl String?
+  liveUrl       String?
+  imageUrl      String?
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tags Tag[] @relation("ProjectTags")
+
+  @@map("project")
+}
+
+model Tag {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  posts    Post[]    @relation("PostTags")
+  projects Project[] @relation("ProjectTags")
+
+  @@map("tag")
+}
+
+model WorkExperience {
+  id          String   @id @default(cuid())
+  company     String
+  role        String
+  startDate   String
+  endDate     String?
+  description String?  @db.Text
+  logoUrl     String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("work_experience")
+}
+
+model SiteSettings {
+  id              String  @id @default("global")
+  heroTitle       String? @db.Text
+  heroDescription String? @db.Text
+  aboutText       String? @db.Text
+
+  githubUrl    String?
+  linkedinUrl  String?
+  twitterUrl   String?
+  emailAddress String?
+  resumeUrl    String?
+
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model Subscriber {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  isActive     Boolean  @default(true)
+  subscribedAt DateTime @default(now())
+
+  @@map("subscriber")
+}
