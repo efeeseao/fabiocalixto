@@ -35,6 +35,14 @@ export const metadata: Metadata = {
     siteName: "Fábio Calixto",
     locale: "pt_PT",
     type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Fábio Calixto",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
