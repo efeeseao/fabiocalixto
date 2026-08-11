@@ -1,37 +1,24 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
-import { betterFetch } from "@better-fetch/fetch";
+import { auth } from "@/lib/auth"; 
 
 const f = createUploadthing();
-
-const auth = async (req: Request) => {
-  const baseURL = process.env.BETTER_AUTH_URL || "http://localhost:3000";
-
-  const { data } = await betterFetch<{
-    user?: { role: string; status: string };
-  }>("/api/auth/get-session", {
-    baseURL,
-    headers: {
-      cookie: req.headers.get("cookie") || "",
-    },
-  });
-
-  if (
-    !data?.user ||
-    data.user.role !== "ADMIN" ||
-    data.user.status !== "APPROVED"
-  ) {
-    throw new UploadThingError("Unauthorized");
-  }
-
-  return { id: "admin" };
-};
 
 export const ourFileRouter = {
   imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .middleware(async ({ req }) => {
-      const user = await auth(req);
-      return { userId: user.id };
+      const session = await auth.api.getSession({
+        headers: req.headers,
+      });
+
+      if (
+        !session?.user ||
+        session.user.role !== "ADMIN" ||
+        session.user.status !== "APPROVED"
+      ) {
+        throw new UploadThingError("Unauthorized");
+      }
+      return { userId: session.user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Upload complete for userId:", metadata.userId);
