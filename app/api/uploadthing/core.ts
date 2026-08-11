@@ -5,10 +5,12 @@ import { betterFetch } from "@better-fetch/fetch";
 const f = createUploadthing();
 
 const auth = async (req: Request) => {
+  const baseURL = process.env.BETTER_AUTH_URL || "http://localhost:3000";
+
   const { data } = await betterFetch<{
     user?: { role: string; status: string };
   }>("/api/auth/get-session", {
-    baseURL: new URL(req.url).origin,
+    baseURL,
     headers: {
       cookie: req.headers.get("cookie") || "",
     },
