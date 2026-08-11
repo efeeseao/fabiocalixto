@@ -84,12 +84,12 @@ export default async function AboutPage() {
 
               <li className="mt-4 flex border-t border-border/40 pt-8">
                 <a
-                  href={`mailto:${settings?.emailAddress || "hello@exemplo.com"}`}
+                  href={`mailto:${settings?.emailAddress || "fabiocalixto16@gmail.com"}`}
                   className="group flex text-sm font-medium text-muted-foreground hover:text-foreground transition-colors items-center"
                 >
                   <Mail01Icon className="h-5 w-5 flex-none transition group-hover:text-primary" />
                   <span className="ml-4">
-                    {settings?.emailAddress || "hello@exemplo.com"}
+                    {settings?.emailAddress || "fabiocalixto16@gmail.com"}
                   </span>
                 </a>
               </li>
