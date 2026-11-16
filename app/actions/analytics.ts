@@ -1,10 +1,12 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth-guard";
 import { startOfMonth, subMonths, format } from "date-fns";
 import { pt } from "date-fns/locale";
 
 export async function getAnalyticsData() {
+  await requireAdmin();
   try {
     const today = new Date();
     const sixMonthsAgo = startOfMonth(subMonths(today, 5));

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
@@ -12,10 +13,16 @@ import {
   ArrowRight01Icon,
 } from "hugeicons-react";
 import { NewsletterForm } from "@/components/public/newsletter-form";
+import { getSiteSettings } from "@/lib/data";
+import { absoluteUrl, jsonLd, siteConfig } from "@/lib/site";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const [settings, posts, experiences] = await Promise.all([
-    prisma.siteSettings.findUnique({ where: { id: "global" } }),
+    getSiteSettings(),
     prisma.post.findMany({
       where: { published: true },
       orderBy: { createdAt: "desc" },
@@ -26,15 +33,50 @@ export default async function HomePage() {
     }),
   ]);
 
+  const sameAs = [
+    settings?.githubUrl,
+    settings?.linkedinUrl,
+    settings?.twitterUrl,
+  ].filter(Boolean);
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${siteConfig.url}/#website`,
+        url: siteConfig.url,
+        name: siteConfig.name,
+        description: siteConfig.description,
+        inLanguage: siteConfig.language,
+        publisher: { "@id": `${siteConfig.url}/#person` },
+      },
+      {
+        "@type": "Person",
+        "@id": `${siteConfig.url}/#person`,
+        name: siteConfig.name,
+        url: siteConfig.url,
+        jobTitle: settings?.heroTitle || "Software Engineer",
+        description: settings?.heroDescription || siteConfig.description,
+        ...(settings?.avatarUrl && { image: absoluteUrl(settings.avatarUrl) }),
+        ...(sameAs.length > 0 && { sameAs }),
+      },
+    ],
+  };
+
   return (
     <div className="space-y-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
+      />
       <section className="max-w-2xl">
         <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-muted/50 p-0.5 shadow-sm ring-1 ring-border/50">
           <div className="relative h-full w-full overflow-hidden rounded-full bg-primary/20">
             {settings?.avatarUrl && (
               <Image
                 src={settings.avatarUrl}
-                alt="Avatar"
+                alt={`Foto de ${siteConfig.name}`}
                 fill
                 priority
                 sizes="64px"
@@ -57,6 +99,8 @@ export default async function HomePage() {
             <a
               href={settings.githubUrl}
               target="_blank"
+              rel="me noopener noreferrer"
+              aria-label="GitHub"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <GithubIcon className="h-6 w-6" />
@@ -66,6 +110,8 @@ export default async function HomePage() {
             <a
               href={settings.linkedinUrl}
               target="_blank"
+              rel="me noopener noreferrer"
+              aria-label="LinkedIn"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <Linkedin01Icon className="h-6 w-6" />
@@ -75,6 +121,8 @@ export default async function HomePage() {
             <a
               href={settings.twitterUrl}
               target="_blank"
+              rel="me noopener noreferrer"
+              aria-label="Twitter / X"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <TwitterIcon className="h-6 w-6" />
@@ -179,6 +227,7 @@ export default async function HomePage() {
               <a
                 href={settings.resumeUrl}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm font-medium transition hover:bg-muted"
               >
                 Download CV

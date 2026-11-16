@@ -15,6 +15,8 @@ export default async function SettingsPage() {
         githubUrl: settings.githubUrl || "",
         linkedinUrl: settings.linkedinUrl || "",
         twitterUrl: settings.twitterUrl || "",
+        resumeUrl: settings.resumeUrl || "",
+        emailAddress: settings.emailAddress || "",
       }
     : {};
 

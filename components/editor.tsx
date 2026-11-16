@@ -46,7 +46,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
   const { startUpload, isUploading } = useUploadThing("imageUploader", {
     onClientUploadComplete: (res) => {
       if (res && res.length > 0) {
-        addImage(res[0].url);
+        addImage(res[0].ufsUrl);
         toast.success("Imagem inserida com sucesso!");
       }
     },

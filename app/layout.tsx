@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { siteConfig } from "@/lib/site";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -17,38 +18,62 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fabiocalixto.com";
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
+};
 
 export const metadata: Metadata = {
-  metadataBase: new URL(baseUrl),
+  metadataBase: new URL(siteConfig.url),
   title: {
-    default: "Fábio Calixto | Software Engineer & Creator",
-    template: "%s | Fábio Calixto",
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.name}`,
   },
-  description:
-    "Portfólio e blog de Fábio Calixto. Escrevo sobre engenharia de software, design e construção de produtos.",
+  description: siteConfig.description,
+  applicationName: siteConfig.name,
+  authors: [{ name: siteConfig.name, url: siteConfig.url }],
+  creator: siteConfig.name,
+  publisher: siteConfig.name,
+  keywords: [
+    "Fábio Calixto",
+    "Software Engineer",
+    "Engenharia de Software",
+    "Desenvolvimento Web",
+    "Portfólio",
+    "Blog",
+  ],
+  alternates: {
+    canonical: "/",
+    types: {
+      "application/rss+xml": [
+        { url: "/rss.xml", title: `${siteConfig.name} — Artigos` },
+      ],
+    },
+  },
   openGraph: {
-    title: "Fábio Calixto",
-    description:
-      "Portfólio e blog de Fábio Calixto. Escrevo sobre engenharia de software, design e construção de produtos.",
+    title: siteConfig.title,
+    description: siteConfig.description,
     url: "/",
-    siteName: "Fábio Calixto",
-    locale: "pt_PT",
+    siteName: siteConfig.name,
+    locale: siteConfig.locale,
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: siteConfig.ogImage,
         width: 1200,
         height: 630,
-        alt: "Fábio Calixto",
+        alt: siteConfig.name,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fábio Calixto",
-    description: "Software Engineer & Creator",
-    creator: "@efeeseao",
+    title: siteConfig.title,
+    description: siteConfig.description,
+    creator: siteConfig.twitter,
+    images: [siteConfig.ogImage],
   },
   robots: {
     index: true,
@@ -61,6 +86,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  formatDetection: { telephone: false, email: false, address: false },
 };
 
 export default function RootLayout({

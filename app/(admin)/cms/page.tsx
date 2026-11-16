@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DashboardChart } from "@/components/admin/dashboard-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -104,27 +105,27 @@ export default async function DashboardPage() {
             <CardTitle>Ações Rápidas</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <a
+            <Link
               href="/cms/posts/new"
               className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
             >
               <span className="w-2 h-2 rounded-full bg-primary/50" /> Escrever
               Novo Artigo
-            </a>
-            <a
+            </Link>
+            <Link
               href="/cms/projects/new"
               className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
             >
               <span className="w-2 h-2 rounded-full bg-primary/50" /> Adicionar
               Projeto
-            </a>
-            <a
+            </Link>
+            <Link
               href="/cms/settings"
               className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
             >
               <span className="w-2 h-2 rounded-full bg-primary/50" /> Atualizar
               Definições
-            </a>
+            </Link>
           </CardContent>
         </Card>
       </div>

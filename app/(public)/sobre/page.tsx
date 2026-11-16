@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import Image from "next/image";
-import prisma from "@/lib/prisma";
+import { getSiteSettings } from "@/lib/data";
+import { sanitizeRichText } from "@/lib/sanitize";
+import { siteConfig } from "@/lib/site";
 import {
   GithubIcon,
   Linkedin01Icon,
@@ -7,15 +10,20 @@ import {
   Mail01Icon,
 } from "hugeicons-react";
 
-export const metadata = {
-  title: "Sobre | Fábio Calixto",
+export const metadata: Metadata = {
+  title: "Sobre",
   description: "Um pouco sobre mim, o meu percurso e o que me motiva.",
+  alternates: { canonical: "/sobre" },
+  openGraph: {
+    type: "profile",
+    title: "Sobre",
+    description: "Um pouco sobre mim, o meu percurso e o que me motiva.",
+    url: "/sobre",
+  },
 };
 
 export default async function AboutPage() {
-  const settings = await prisma.siteSettings.findUnique({
-    where: { id: "global" },
-  });
+  const settings = await getSiteSettings();
 
   return (
     <div className="mx-auto max-w-2xl lg:max-w-5xl">
@@ -26,7 +34,7 @@ export default async function AboutPage() {
               {settings?.avatarUrl ? (
                 <Image
                   src={settings.avatarUrl}
-                  alt="A minha foto"
+                  alt={`Foto de ${siteConfig.name}`}
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, 384px"
@@ -47,7 +55,7 @@ export default async function AboutPage() {
                   <a
                     href={settings.twitterUrl}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="me noopener noreferrer"
                     className="group flex text-sm font-medium text-muted-foreground hover:text-foreground transition-colors items-center"
                   >
                     <TwitterIcon className="h-5 w-5 flex-none transition group-hover:text-primary" />
@@ -60,7 +68,7 @@ export default async function AboutPage() {
                   <a
                     href={settings.githubUrl}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="me noopener noreferrer"
                     className="group flex text-sm font-medium text-muted-foreground hover:text-foreground transition-colors items-center"
                   >
                     <GithubIcon className="h-5 w-5 flex-none transition group-hover:text-primary" />
@@ -73,7 +81,7 @@ export default async function AboutPage() {
                   <a
                     href={settings.linkedinUrl}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="me noopener noreferrer"
                     className="group flex text-sm font-medium text-muted-foreground hover:text-foreground transition-colors items-center"
                   >
                     <Linkedin01Icon className="h-5 w-5 flex-none transition group-hover:text-primary" />
@@ -105,13 +113,13 @@ export default async function AboutPage() {
           {settings?.aboutText ? (
             <div
               className="prose prose-zinc dark:prose-invert prose-lg max-w-none text-muted-foreground prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-img:rounded-xl prose-img:border prose-img:border-border/50"
-              dangerouslySetInnerHTML={{ __html: settings.aboutText }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichText(settings.aboutText) }}
             />
           ) : (
             <p className="text-muted-foreground text-lg leading-relaxed">
               Ainda não escreveste a tua biografia. Vai ao painel de
               administração (Definições) e preenche a secção &ldquo;Sobre
-              Mim&ldquo; para que este texto apareça aqui!
+              Mim&rdquo; para que este texto apareça aqui!
             </p>
           )}
         </div>

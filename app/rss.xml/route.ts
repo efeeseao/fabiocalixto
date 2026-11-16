@@ -1,41 +1,57 @@
 import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { siteConfig } from "@/lib/site";
+
+export const revalidate = 3600;
+
+function escapeXml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fabiocalixto.com";
+  const baseUrl = siteConfig.url;
 
   const posts = await prisma.post.findMany({
     where: { published: true },
     orderBy: { createdAt: "desc" },
     take: 20,
+    select: { title: true, slug: true, excerpt: true, createdAt: true },
   });
 
-  const rss = `<?xml version="1.0" encoding="UTF-8" ?>
-  <rss version="2.0">
-    <channel>
-      <title>Fábio Calixto</title>
-      <link>${baseUrl}</link>
-      <description>Artigos sobre engenharia de software, design e construção de produtos.</description>
-      <language>pt-PT</language>
-      <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-      ${posts
-        .map(
-          (post) => `
-        <item>
-          <title><![CDATA[${post.title}]]></title>
-          <link>${baseUrl}/artigos/${post.slug}</link>
-          <guid>${baseUrl}/artigos/${post.slug}</guid>
-          <pubDate>${post.createdAt.toUTCString()}</pubDate>
-          <description><![CDATA[${post.excerpt || ""}]]></description>
-        </item>`,
-        )
-        .join("")}
-    </channel>
-  </rss>`;
+  const items = posts
+    .map((post) => {
+      const link = `${baseUrl}/artigos/${encodeURIComponent(post.slug)}`;
+      return `
+    <item>
+      <title>${escapeXml(post.title)}</title>
+      <link>${link}</link>
+      <guid isPermaLink="true">${link}</guid>
+      <pubDate>${post.createdAt.toUTCString()}</pubDate>
+      <description>${escapeXml(post.excerpt || "")}</description>
+    </item>`;
+    })
+    .join("");
 
-  return new NextResponse(rss, {
+  const rss = `<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>${escapeXml(siteConfig.name)}</title>
+    <link>${baseUrl}</link>
+    <description>Artigos sobre engenharia de software, design e construção de produtos.</description>
+    <language>${siteConfig.language}</language>
+    <atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>${(posts[0]?.createdAt ?? new Date()).toUTCString()}</lastBuildDate>${items}
+  </channel>
+</rss>`;
+
+  return new Response(rss, {
     headers: {
-      "Content-Type": "application/xml",
+      "Content-Type": "application/rss+xml; charset=utf-8",
+      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
     },
   });
 }

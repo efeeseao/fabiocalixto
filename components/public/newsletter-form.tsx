@@ -27,8 +27,19 @@ export function NewsletterForm() {
 
   return (
     <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row">
+      {/* Honeypot anti-spam: escondido de humanos e leitores de ecrã */}
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="hidden"
+      />
       <input
         type="email"
+        autoComplete="email"
+        maxLength={191}
         name="email"
         placeholder="O teu email"
         aria-label="Endereço de email"

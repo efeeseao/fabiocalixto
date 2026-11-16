@@ -1,11 +1,20 @@
 import Image from "next/image";
 import prisma from "@/lib/prisma";
+import type { Metadata } from "next";
 import { Link04Icon, GithubIcon, Image01Icon } from "hugeicons-react";
+import { sanitizeRichText } from "@/lib/sanitize";
 
-export const metadata = {
-  title: "Projetos | O Teu Nome",
+export const metadata: Metadata = {
+  title: "Projetos",
   description:
     "Coisas em que trabalhei, desde pequenos testes a produtos reais.",
+  alternates: { canonical: "/projetos" },
+  openGraph: {
+    title: "Projetos",
+    description:
+      "Coisas em que trabalhei, desde pequenos testes a produtos reais.",
+    url: "/projetos",
+  },
 };
 
 export default async function ProjectsIndexPage() {
@@ -61,7 +70,7 @@ export default async function ProjectsIndexPage() {
 
                 <div
                   className="relative z-10 mt-2 line-clamp-3 text-sm text-muted-foreground leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: project.description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichText(project.description) }}
                 />
 
                 <div className="relative z-10 mt-6 flex flex-wrap items-center gap-4 text-sm font-medium">

@@ -1,13 +1,21 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { ArrowRight01Icon } from "hugeicons-react";
 
-export const metadata = {
-  title: "Artigos | O Teu Nome",
+export const metadata: Metadata = {
+  title: "Artigos",
   description:
     "Os meus pensamentos sobre engenharia de software, design e construção de produtos.",
+  alternates: { canonical: "/artigos" },
+  openGraph: {
+    title: "Artigos",
+    description:
+      "Os meus pensamentos sobre engenharia de software, design e construção de produtos.",
+    url: "/artigos",
+  },
 };
 
 export default async function ArticlesIndexPage() {

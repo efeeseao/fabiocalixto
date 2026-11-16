@@ -3,54 +3,61 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { requireAdmin } from "@/lib/auth-guard";
+import { idSchema } from "@/lib/validation";
 
 const subscribeSchema = z.object({
-  email: z.string().email("Por favor, insere um email válido."),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(191, "Email demasiado longo.")
+    .email("Por favor, insere um email válido."),
+  // Campo "honeypot": invisível para humanos, preenchido por bots.
+  website: z.string().max(0).optional(),
 });
+
+const SUCCESS_MESSAGE = "Obrigado por subscreveres a newsletter!";
 
 export async function subscribeToNewsletter(formData: FormData) {
   try {
-    const email = formData.get("email");
+    const parsed = subscribeSchema.safeParse({
+      email: formData.get("email") ?? "",
+      website: formData.get("website") ?? "",
+    });
 
-    const parsed = subscribeSchema.safeParse({ email });
     if (!parsed.success) {
+      // Bots que preenchem o honeypot recebem uma resposta de sucesso falsa.
+      if (parsed.error.issues.some((i) => i.path[0] === "website")) {
+        return { success: true, message: SUCCESS_MESSAGE };
+      }
       return { success: false, error: parsed.error.issues[0].message };
     }
 
-    const validEmail = parsed.data.email;
+    const { email } = parsed.data;
 
     const existingSubscriber = await prisma.subscriber.findUnique({
-      where: { email: validEmail },
+      where: { email },
     });
 
     if (existingSubscriber) {
-      if (existingSubscriber.isActive) {
-        return { success: false, error: "Este email já está subscrito!" };
-      } else {
+      if (!existingSubscriber.isActive) {
         await prisma.subscriber.update({
-          where: { email: validEmail },
+          where: { email },
           data: { isActive: true },
         });
         revalidatePath("/cms/subscribers");
-        return {
-          success: true,
-          message: "Bem-vindo de volta! Subscrição reativada.",
-        };
       }
+      // Resposta idêntica para não revelar se o email já está registado.
+      return { success: true, message: SUCCESS_MESSAGE };
     }
 
     await prisma.subscriber.create({
-      data: {
-        email: validEmail,
-        isActive: true,
-      },
+      data: { email, isActive: true },
     });
 
     revalidatePath("/cms/subscribers");
-    return {
-      success: true,
-      message: "Obrigado por subscreveres a newsletter!",
-    };
+    return { success: true, message: SUCCESS_MESSAGE };
   } catch (error) {
     console.error("Subscription error:", error);
     return {
@@ -61,6 +68,7 @@ export async function subscribeToNewsletter(formData: FormData) {
 }
 
 export async function getSubscribers() {
+  await requireAdmin();
   try {
     const subscribers = await prisma.subscriber.findMany({
       orderBy: { subscribedAt: "desc" },
@@ -80,27 +88,28 @@ export async function toggleSubscriberStatus(
   id: string,
   currentStatus: boolean,
 ) {
+  await requireAdmin();
   try {
     await prisma.subscriber.update({
-      where: { id },
+      where: { id: idSchema.parse(id) },
       data: { isActive: !currentStatus },
     });
     revalidatePath("/cms/subscribers");
     return { success: true };
   } catch (error) {
-    return {
-      success: false,
-      error: "Erro ao alterar estado do subscritor." + error,
-    };
+    console.error("Failed to toggle subscriber:", error);
+    return { success: false, error: "Erro ao alterar estado do subscritor." };
   }
 }
 
 export async function deleteSubscriber(id: string) {
+  await requireAdmin();
   try {
-    await prisma.subscriber.delete({ where: { id } });
+    await prisma.subscriber.delete({ where: { id: idSchema.parse(id) } });
     revalidatePath("/cms/subscribers");
     return { success: true };
   } catch (error) {
-    return { success: false, error: "Erro ao apagar o subscritor." + error };
+    console.error("Failed to delete subscriber:", error);
+    return { success: false, error: "Erro ao apagar o subscritor." };
   }
 }
