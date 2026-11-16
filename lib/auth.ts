@@ -8,9 +8,21 @@ import bcrypt from "bcryptjs";
 
 const appUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL;
 
+// Aceita o domínio com e sem "www." (o nginx serve ambos).
+function originsFor(url: string | undefined) {
+  if (!url) return undefined;
+  try {
+    const { protocol, host } = new URL(url);
+    const bare = host.replace(/^www\./, "");
+    return [`${protocol}//${bare}`, `${protocol}//www.${bare}`];
+  } catch {
+    return [url];
+  }
+}
+
 export const auth = betterAuth({
   baseURL: appUrl,
-  trustedOrigins: appUrl ? [appUrl] : undefined,
+  trustedOrigins: originsFor(appUrl),
   database: prismaAdapter(prisma, {
     provider: "mysql",
   }),
