@@ -55,13 +55,20 @@ export default function LoginPage() {
 
     if (signInError) {
       setGlobalError(
-        signInError.message || "Credenciais inválidas. Tenta novamente.",
+        signInError.status === 429
+          ? "Demasiadas tentativas. Aguarda um minuto e tenta novamente."
+          : "Credenciais inválidas. Tenta novamente.",
       );
       setIsLoading(false);
       return;
     }
 
-    router.push("/cms");
+    // Só permite redirecionar para rotas internas do CMS (evita open redirect).
+    const from = new URLSearchParams(window.location.search).get("from");
+    const target =
+      from && from.startsWith("/cms") && !from.startsWith("//") ? from : "/cms";
+
+    router.push(target);
     router.refresh();
   }
 

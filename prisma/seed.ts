@@ -9,6 +9,21 @@ async function main() {
   const ADMIN_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD || "Admin@12345";
   const ADMIN_NAME = process.env.ADMIN_INITIAL_NAME || "Admin";
 
+  if (
+    process.env.NODE_ENV === "production" &&
+    (!process.env.ADMIN_INITIAL_EMAIL || !process.env.ADMIN_INITIAL_PASSWORD)
+  ) {
+    console.error(
+      "❌ Em produção, define ADMIN_INITIAL_EMAIL e ADMIN_INITIAL_PASSWORD (não são usadas credenciais por defeito).",
+    );
+    process.exit(1);
+  }
+
+  if (ADMIN_PASSWORD.length < 10) {
+    console.error("❌ A password do administrador deve ter pelo menos 10 caracteres.");
+    process.exit(1);
+  }
+
   try {
     const existingAdmin = await prisma.user.findUnique({
       where: { email: ADMIN_EMAIL },
@@ -21,7 +36,7 @@ async function main() {
 
     console.log("⏳ A gerar credenciais do administrador...");
 
-    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 12);
 
     await prisma.user.create({
       data: {
@@ -46,7 +61,9 @@ async function main() {
 
     console.log("🚀 Administrador principal criado com sucesso!");
     console.log(`   Email: ${ADMIN_EMAIL}`);
-    console.log(`   Password: ${ADMIN_PASSWORD} (Lembra-te de a alterar!)`);
+    if (!process.env.ADMIN_INITIAL_PASSWORD) {
+      console.log("   Password: (valor por defeito — altera-a imediatamente!)");
+    }
   } catch (error) {
     console.error("❌ Erro durante o seed:", error);
     process.exit(1);

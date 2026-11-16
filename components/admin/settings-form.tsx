@@ -33,6 +33,8 @@ const settingsSchema = z.object({
   githubUrl: z.string().url("URL inválido").or(z.literal("")).optional(),
   linkedinUrl: z.string().url("URL inválido").or(z.literal("")).optional(),
   twitterUrl: z.string().url("URL inválido").or(z.literal("")).optional(),
+  resumeUrl: z.string().url("URL inválido").or(z.literal("")).optional(),
+  emailAddress: z.string().email("Email inválido").or(z.literal("")).optional(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -60,6 +62,8 @@ export function SettingsForm({
       githubUrl: initialData?.githubUrl || "",
       linkedinUrl: initialData?.linkedinUrl || "",
       twitterUrl: initialData?.twitterUrl || "",
+      resumeUrl: initialData?.resumeUrl || "",
+      emailAddress: initialData?.emailAddress || "",
     },
   });
 
@@ -68,7 +72,7 @@ export function SettingsForm({
   const { startUpload, isUploading } = useUploadThing("imageUploader", {
     onClientUploadComplete: (res) => {
       if (res && res.length > 0) {
-        setValue("avatarUrl", res[0].url);
+        setValue("avatarUrl", res[0].ufsUrl);
         toast.success("Foto de perfil carregada com sucesso!");
       }
     },
@@ -248,6 +252,36 @@ export function SettingsForm({
                 className="h-12"
                 {...register("twitterUrl")}
               />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="emailAddress">Email de Contacto</FieldLabel>
+              <Input
+                id="emailAddress"
+                placeholder="email@exemplo.com"
+                className="h-12"
+                {...register("emailAddress")}
+              />
+              {errors.emailAddress && (
+                <p className="text-sm text-destructive">
+                  {errors.emailAddress.message}
+                </p>
+              )}
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="resumeUrl">URL do CV (PDF)</FieldLabel>
+              <Input
+                id="resumeUrl"
+                placeholder="https://..."
+                className="h-12"
+                {...register("resumeUrl")}
+              />
+              {errors.resumeUrl && (
+                <p className="text-sm text-destructive">
+                  {errors.resumeUrl.message}
+                </p>
+              )}
             </Field>
           </FieldGroup>
         </FieldSet>
